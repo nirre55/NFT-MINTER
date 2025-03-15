@@ -1,0 +1,201 @@
+{
+    "name": "test update_nft_price",
+    "steps": [
+        {
+            "step": "setState",
+            "accounts": {
+                "address:owner": {
+                    "nonce": "1",
+                    "balance": "1000000000000000000"
+                },
+                "address:user": {
+                    "nonce": "1",
+                    "balance": "1000000000000000000"
+                }
+            },
+            "newAddresses": [
+                {
+                    "creatorAddress": "address:owner",
+                    "creatorNonce": "1",
+                    "newAddress": "sc:nft-minter"
+                }
+            ]
+        },
+        {
+            "step": "scDeploy",
+            "id": "deploy",
+            "tx": {
+                "from": "address:owner",
+                "contractCode": "mxsc:../output/world-forge.mxsc.json",
+                "arguments": [],
+                "gasLimit": "5,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "issue-token",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:nft-minter",
+                "value": "50000000000000000",
+                "function": "issueToken",
+                "arguments": [
+                    "str:TestNFT",
+                    "str:TNFT"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": "*",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "setState",
+            "comment": "Simuler la réponse du callback issueToken",
+            "currentBlockInfo": {
+                "blockTimestamp": "511",
+                "blockNonce": "522",
+                "blockRound": "533",
+                "blockEpoch": "544"
+            },
+            "accounts": {
+                "sc:nft-minter": {
+                    "storage": {
+                        "str:nftTokenId": "str:TNFT-123456"
+                    }
+                }
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "set-local-roles",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:nft-minter",
+                "function": "setLocalRoles",
+                "arguments": [],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": "*",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "setState",
+            "comment": "Simuler la création d'un NFT avec un prix",
+            "accounts": {
+                "sc:nft-minter": {
+                    "storage": {
+                        "str:priceTag|u64:1": {
+                            "token": "str:EGLD",
+                            "nonce": "u64:0",
+                            "amount": "1000000000000000000"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "update-nft-price",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:nft-minter",
+                "function": "updateNftPrice",
+                "arguments": [
+                    "1",
+                    "2000000000000000000"
+                ],
+                "gasLimit": "5,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "accounts": {
+                "sc:nft-minter": {
+                    "storage": {
+                        "str:priceTag|u64:1": {
+                            "token": "str:EGLD",
+                            "nonce": "u64:0",
+                            "amount": "2000000000000000000"
+                        }
+                    },
+                    "code": "*"
+                },
+                "+": ""
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "update-nft-price-non-existent",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:nft-minter",
+                "function": "updateNftPrice",
+                "arguments": [
+                    "999",
+                    "2000000000000000000"
+                ],
+                "gasLimit": "5,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:NFT not found or already sold",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "update-nft-price-non-owner",
+            "tx": {
+                "from": "address:user",
+                "to": "sc:nft-minter",
+                "function": "updateNftPrice",
+                "arguments": [
+                    "1",
+                    "3000000000000000000"
+                ],
+                "gasLimit": "5,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:Endpoint can only be called by owner",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        }
+    ]
+} 

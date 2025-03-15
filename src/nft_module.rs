@@ -117,7 +117,13 @@ pub trait NftModule: storage::StorageModule {
 
         // Transfer payment to contract owner
         //let owner = self.blockchain().get_sc_address();
-        //self.tx().to(owner).payment(payment).transfer();
+        self.tx().to(self.contract_address().get()).payment(payment).transfer();
+    }
+
+    #[only_owner]
+    #[endpoint(setContractAddress)]
+    fn set_contract_address(&self, address: ManagedAddress) {
+        self.contract_address().set(address);
     }
 
     // views

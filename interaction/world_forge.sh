@@ -28,7 +28,9 @@ function display_help {
     echo "  upgrade               - Met à jour le contrat"
     echo "  update-nft-price <nonce> <nouveau_prix> - Met à jour le prix d'un NFT"
     echo "  withdraw              - Retire les fonds du contrat"
-    echo "  create-nft-usdc <nom> <royalties> <uri> <prix_usdc> - Crée un NFT avec prix en USDC"
+    echo "  create-nft-esdt <nom> <royalties> <uri> <prix_esdt> <token_id> - Crée un NFT avec prix en ESDT"
+    echo "  buy-nft-esdt <token> <prix> <nonce> - Achète un NFT avec prix en ESDT"
+    echo "  set-contract-address <adresse> - Définit l'adresse d'un contrat externe"
     echo "  help                    - Affiche cette aide"
     echo ""
 }
@@ -80,16 +82,15 @@ function create_nft {
 }
 
 # Fonction pour créer un NFT avec prix en USDC
-function create_nft_usdc {
-    if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
+function create_nft_esdt {
+    if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]  || [ -z "$5" ]; then
         echo "Erreur: Veuillez spécifier tous les paramètres."
-        echo "Usage: $0 create-nft-usdc <nom> <royalties> <uri> <prix_usdc>"
-        echo "Exemple: $0 create-nft-usdc \"Mon NFT\" 1000 \"https://mon-uri\" 1000000"
-        echo "Note: Le prix est en USDC avec 6 décimales (1 USDC = 1000000)"
+        echo "Usage: $0 create-nft-esdt <nom> <royalties> <uri> <prix_esdt> <token_id>"
+        echo "Exemple: $0 create-nft-esdt \"Mon NFT\" 1000 \"https://mon-uri\" 1000000 \"USDC-350c4e\""
         exit 1
     fi
     
-    echo "Création du NFT '$1' avec $2 royalties, URI '$3' et prix $4 USDC..."
+    echo "Création du NFT '$1' avec $2 royalties, URI '$3' et prix $4 ESDT..."
     
     mxpy contract call $CONTRACT_ADDRESS \
         --function="createNft" \
@@ -97,7 +98,7 @@ function create_nft_usdc {
         --gas-limit=$GAS_LIMIT \
         --proxy=$PROXY \
         --chain=$CHAIN \
-        --arguments str:"$1" $2 str:"$3" $4 str:USDC-350c4e 0 \
+        --arguments str:"$1" $2 str:"$3" $4 str:"$5" 0 \
         --recall-nonce \
         --send
 }
@@ -113,6 +114,18 @@ function buy_nft {
     echo "Achat du NFT avec le nonce $1 pour $2 EGLD..."
     
     mxpy contract call $CONTRACT_ADDRESS --function="buyNft" --value=$2 --pem=$ALICE_WALLET --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments $1 --recall-nonce --send
+}
+
+function buy_nft_esdt {
+    if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+        echo "Erreur: Veuillez spécifier l'identifiant du token et le prix et nonce du NFT."
+        echo "Usage: $0 buy-nft-esdt <token> <prix> <nonce>"
+        exit 1
+    fi
+    
+    echo "Achat du NFT avec le nonce $3 pour $2 ESDT TOKEN $1..."
+    
+    mxpy contract call $CONTRACT_ADDRESS --function="ESDTTransfer" --pem=$ALICE_WALLET --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments str:"$1" $2 str:"buyNft" $3 --recall-nonce --send || return
 }
 
 # Fonction pour réclamer les royalties
@@ -175,6 +188,18 @@ function withdraw {
     mxpy contract call $CONTRACT_ADDRESS --function="withdraw" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
 }
 
+# Fonction pour définir l'adresse d'un contrat externe
+function set_contract_address {
+    if [ -z "$1" ]; then
+        echo "Erreur: Veuillez spécifier l'adresse du contrat."
+        echo "Usage: $0 set-contract-address <adresse>"
+        exit 1
+    fi
+    
+    echo "Définition de l'adresse du contrat externe à $1..."
+    
+    mxpy contract call $CONTRACT_ADDRESS --function="setContractAddress" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments str:"$1" --recall-nonce --send
+}
 
 # Traitement des commandes
 case "$1" in
@@ -211,8 +236,14 @@ case "$1" in
     get-nft-price)
         get_nft_price "$2"
         ;;
-    create-nft-usdc)
-        create_nft_usdc "$2" "$3" "$4" "$5"
+    create-nft-esdt)
+        create_nft_esdt "$2" "$3" "$4" "$5" "$6"
+        ;;
+    set-contract-address)
+        set_contract_address "$2"
+        ;;
+    buy-nft-esdt)
+        buy_nft_esdt "$2" "$3" "$4"
         ;;
     help|*)
         display_help

@@ -18,4 +18,7 @@ pub trait StorageModule {
  
      #[storage_mapper("priceTag")]
      fn price_tag(&self, nft_nonce: u64) -> SingleValueMapper<PriceTag<Self::Api>>;
+
+     #[storage_mapper("contractAddress")]
+     fn contract_address(&self) -> SingleValueMapper<ManagedAddress>;
 } 
