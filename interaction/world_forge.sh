@@ -27,6 +27,8 @@ function display_help {
     echo "  get-nft-price <nonce>   - Récupère le prix d'un NFT"
     echo "  upgrade               - Met à jour le contrat"
     echo "  update-nft-price <nonce> <nouveau_prix> - Met à jour le prix d'un NFT"
+    echo "  withdraw              - Retire les fonds du contrat"
+    echo "  create-nft-usdc <nom> <royalties> <uri> <prix_usdc> - Crée un NFT avec prix en USDC"
     echo "  help                    - Affiche cette aide"
     echo ""
 }
@@ -75,6 +77,29 @@ function create_nft {
     echo "Création du NFT '$1' avec $2 royalties, URI '$3' et prix $4..."
     
     mxpy contract call $CONTRACT_ADDRESS --function="createNft" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments str:"$1" $2 str:"$3" $4 --recall-nonce --send
+}
+
+# Fonction pour créer un NFT avec prix en USDC
+function create_nft_usdc {
+    if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
+        echo "Erreur: Veuillez spécifier tous les paramètres."
+        echo "Usage: $0 create-nft-usdc <nom> <royalties> <uri> <prix_usdc>"
+        echo "Exemple: $0 create-nft-usdc \"Mon NFT\" 1000 \"https://mon-uri\" 1000000"
+        echo "Note: Le prix est en USDC avec 6 décimales (1 USDC = 1000000)"
+        exit 1
+    fi
+    
+    echo "Création du NFT '$1' avec $2 royalties, URI '$3' et prix $4 USDC..."
+    
+    mxpy contract call $CONTRACT_ADDRESS \
+        --function="createNft" \
+        --pem=$PEM_FILE \
+        --gas-limit=$GAS_LIMIT \
+        --proxy=$PROXY \
+        --chain=$CHAIN \
+        --arguments str:"$1" $2 str:"$3" $4 str:USDC-350c4e 0 \
+        --recall-nonce \
+        --send
 }
 
 # Fonction pour acheter un NFT
@@ -127,14 +152,7 @@ function get_nft_price {
 function upgrade {
     echo "Mise à jour du contrat..."
     
-    mxpy --verbose contract upgrade $CONTRACT_ADDRESS --recall-nonce \
-        --bytecode="output/world-forge.wasm" \
-        --metadata-payable \
-        --pem=$PEM_FILE \
-        --gas-limit=$GAS_LIMIT \
-        --proxy=$PROXY \
-        --chain=$CHAIN \
-        --send || return
+    mxpy contract upgrade $CONTRACT_ADDRESS --bytecode="output/world-forge.wasm" --pem=$PEM_FILE --metadata-payable --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
 }
 
 # Fonction pour mettre à jour le prix d'un NFT
@@ -149,6 +167,14 @@ function update_nft_price {
     
     mxpy contract call $CONTRACT_ADDRESS --function="updateNftPrice" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments $1 $2 --recall-nonce --send
 }
+
+# Fonction pour retirer les fonds du contrat
+function withdraw {
+    echo "Retrait des fonds du contrat..."
+    
+    mxpy contract call $CONTRACT_ADDRESS --function="withdraw" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
+}
+
 
 # Traitement des commandes
 case "$1" in
@@ -176,11 +202,17 @@ case "$1" in
     claim-royalties)
         claim_royalties "$2" "$3" "$4"
         ;;
+    withdraw)
+        withdraw
+        ;;
     get-token-id)
         get_token_id
         ;;
     get-nft-price)
         get_nft_price "$2"
+        ;;
+    create-nft-usdc)
+        create_nft_usdc "$2" "$3" "$4" "$5"
         ;;
     help|*)
         display_help

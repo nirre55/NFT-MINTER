@@ -69,6 +69,16 @@ pub trait NftModule: storage::StorageModule {
             .async_call_and_exit()
     }
 
+    #[only_owner]
+    #[endpoint(withdraw)]
+    fn withdraw(&self) {
+        let balance = self.blockchain().get_sc_balance(&EgldOrEsdtTokenIdentifier::egld(), 0);
+        require!(balance > BigUint::zero(), "No funds available");
+        
+        let owner = self.blockchain().get_owner_address();
+        self.send().direct_egld(&owner, &balance);
+    }
+
     // endpoints
 
     #[payable]
@@ -105,8 +115,9 @@ pub trait NftModule: storage::StorageModule {
             .single_esdt(&nft_token_id, nft_nonce, &BigUint::from(NFT_AMOUNT))
             .transfer();
 
-        let owner = self.blockchain().get_owner_address();
-        self.tx().to(owner).payment(payment).transfer();
+        // Transfer payment to contract owner
+        //let owner = self.blockchain().get_sc_address();
+        //self.tx().to(owner).payment(payment).transfer();
     }
 
     // views
