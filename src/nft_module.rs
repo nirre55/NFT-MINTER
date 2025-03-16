@@ -189,7 +189,14 @@ pub trait NftModule: storage::StorageModule {
 
         let attributes_sha256 = self.crypto().sha256(&serialized_attributes);
         let attributes_hash = attributes_sha256.as_managed_buffer();
-        let uris = ManagedVec::from_single_item(uri);
+
+        let metadata_uri = ManagedBuffer::from("https://ipfs.io/ipfs/QmP8XL56WtNnRvWUXHh1W8MLAjekMyY5JtMw5FC72Lf3bK/7.json");
+        
+        // Créer un vecteur d'URIs avec l'URI de l'image et l'URI des métadonnées
+        let mut uris = ManagedVec::new();
+        uris.push(uri); // URI de l'image
+        uris.push(metadata_uri); // URI des métadonnées
+        
         let nft_nonce = self.send().esdt_nft_create(
             &nft_token_id,
             &BigUint::from(NFT_AMOUNT),

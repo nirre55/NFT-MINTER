@@ -7,8 +7,9 @@ mod storage;
 
 #[type_abi]
 #[derive(TopEncode, TopDecode)]
-pub struct ExampleAttributes {
+pub struct ExampleAttributes<M: ManagedTypeApi> {
     pub creation_timestamp: u64,
+    pub metadata: ManagedBuffer<M>,
 }
 
 #[multiversx_sc::contract]
@@ -32,6 +33,7 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule {
         selling_price: BigUint,
         opt_token_used_as_payment: OptionalValue<TokenIdentifier>,
         opt_token_used_as_payment_nonce: OptionalValue<u64>,
+        opt_metadata: OptionalValue<ManagedBuffer>,
     ) {
         let token_used_as_payment = match opt_token_used_as_payment {
             OptionalValue::Some(token) => EgldOrEsdtTokenIdentifier::esdt(token),
@@ -51,8 +53,19 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule {
             }
         };
 
-        let attributes = ExampleAttributes {
+        let metadata = match opt_metadata {
+            OptionalValue::Some(meta) => meta,
+            OptionalValue::None => ManagedBuffer::from("metadata:QmP8XL56WtNnRvWUXHh1W8MLAjekMyY5JtMw5FC72Lf3bK/7.json"),
+        };
+
+        let tags = ManagedBuffer::from("tags:worldforge");
+        let mut combined_metadata = metadata;
+        combined_metadata.append(&ManagedBuffer::from(";"));
+        combined_metadata.append(&tags);
+
+        let attributes = ExampleAttributes::<Self::Api> {
             creation_timestamp: self.blockchain().get_block_timestamp(),
+            metadata: combined_metadata,
         };
         self.create_nft_with_attributes(
             name,
@@ -63,5 +76,18 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule {
             token_used_as_payment,
             token_used_as_payment_nonce,
         );
+    }
+
+    #[view(getNftAttributes)]
+    fn get_nft_attributes(&self, nft_nonce: u64) -> ExampleAttributes<Self::Api> {
+        let nft_token_id = self.nft_token_id().get();
+        let nft_info = self.blockchain().get_esdt_token_data(
+            &self.blockchain().get_sc_address(),
+            &nft_token_id,
+            nft_nonce,
+        );
+        
+        let attributes = nft_info.decode_attributes::<ExampleAttributes<Self::Api>>();
+        attributes
     }
 }

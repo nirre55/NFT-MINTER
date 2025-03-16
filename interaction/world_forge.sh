@@ -25,6 +25,7 @@ function display_help {
     echo "  claim-royalties <marketplace> <token> <nonce> - Réclame les royalties"
     echo "  get-token-id            - Récupère l'identifiant du token NFT"
     echo "  get-nft-price <nonce>   - Récupère le prix d'un NFT"
+    echo "  get-nft-attributes <nonce> - Récupère les attributs d'un NFT"
     echo "  upgrade               - Met à jour le contrat"
     echo "  update-nft-price <nonce> <nouveau_prix> - Met à jour le prix d'un NFT"
     echo "  withdraw              - Retire les fonds du contrat"
@@ -161,6 +162,19 @@ function get_nft_price {
     mxpy contract query $CONTRACT_ADDRESS --function="getNftPrice" --proxy=$PROXY --arguments $1
 }
 
+# Fonction pour récupérer les attributs d'un NFT
+function get_nft_attributes {
+    if [ -z "$1" ]; then
+        echo "Erreur: Veuillez spécifier le nonce du NFT."
+        echo "Usage: $0 get-nft-attributes <nonce>"
+        exit 1
+    fi
+    
+    echo "Récupération des attributs du NFT avec le nonce $1..."
+    
+    mxpy contract query $CONTRACT_ADDRESS --function="getNftAttributes" --proxy=$PROXY --arguments $1
+}
+
 # Fonction pour mettre à jour le contrat
 function upgrade {
     echo "Mise à jour du contrat..."
@@ -219,7 +233,7 @@ case "$1" in
         set_roles
         ;;
     create-nft)
-        create_nft "$2" "$3" "$4" "$5"
+        create_nft "$2" "$3" "$4" "$5" "$6"
         ;;
     buy-nft)
         buy_nft "$2" "$3"
@@ -236,8 +250,11 @@ case "$1" in
     get-nft-price)
         get_nft_price "$2"
         ;;
+    get-nft-attributes)
+        get_nft_attributes "$2"
+        ;;
     create-nft-esdt)
-        create_nft_esdt "$2" "$3" "$4" "$5" "$6"
+        create_nft_esdt "$2" "$3" "$4" "$5" "$6" "$7"
         ;;
     set-contract-address)
         set_contract_address "$2"
