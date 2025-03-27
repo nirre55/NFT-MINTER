@@ -5,7 +5,9 @@ PROXY="https://devnet-gateway.multiversx.com"
 CHAIN="D"
 PEM_FILE="/home/mehdi/Desktop/smart-contract/multiversx_projets/wallet/wallet.pem"
 ALICE_WALLET="/home/mehdi/Desktop/smart-contract/multiversx_projets/wallet/walletAlice.pem"
-GAS_LIMIT=60000000
+GAS_LIMIT=600000000
+
+
 
 # Adresse du contrat (à remplir après le déploiement)
 CONTRACT_ADDRESS="erd1qqqqqqqqqqqqqpgqcecutl5axtqejqsuyyatwn7xvdftjh5ule3seyapst"
@@ -32,6 +34,7 @@ function display_help {
     echo "  create-nft-esdt <nom> <royalties> <uri> <prix_esdt> <token_id> - Crée un NFT avec prix en ESDT"
     echo "  buy-nft-esdt <token> <prix> <nonce> - Achète un NFT avec prix en ESDT"
     echo "  set-contract-address <adresse> - Définit l'adresse d'un contrat externe"
+    echo "  get-rarety-storage <nom> - Récupère le storage du contrat"
     echo "  help                    - Affiche cette aide"
     echo ""
 }
@@ -71,15 +74,15 @@ function set_roles {
 
 # Fonction pour créer un NFT
 function create_nft {
-    if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
+    if [ -z "$1" ] || [ -z "$2" ]; then
         echo "Erreur: Veuillez spécifier tous les paramètres."
         echo "Usage: $0 create-nft <nom> <royalties> <uri> <prix>"
         exit 1
     fi
     
-    echo "Création du NFT '$1' avec $2 royalties, URI '$3' et prix $4..."
+    echo "Création du NFT '$1' avec un prix $2..."
     
-    mxpy contract call $CONTRACT_ADDRESS --function="createNft" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments str:"$1" $2 str:"$3" $4 --recall-nonce --send
+    mxpy contract call $CONTRACT_ADDRESS --function="createNft" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments str:"$1" $2 --recall-nonce --send
 }
 
 # Fonction pour créer un NFT avec prix en USDC
@@ -182,6 +185,17 @@ function upgrade {
     mxpy contract upgrade $CONTRACT_ADDRESS --bytecode="output/world-forge.wasm" --pem=$PEM_FILE --metadata-payable --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
 }
 
+function get_rarety_storage {
+    if [ -z "$1" ]; then
+        echo "Erreur: Veuillez spécifier le nom de View."
+        echo "Usage: $0 get-rarety-storage"
+        exit 1
+    fi
+    echo "recuperation du storage..."
+    
+    mxpy contract query $CONTRACT_ADDRESS --function="$1" --proxy=$PROXY 
+}
+
 # Fonction pour mettre à jour le prix d'un NFT
 function update_nft_price {
     if [ -z "$1" ] || [ -z "$2" ]; then
@@ -196,10 +210,19 @@ function update_nft_price {
 }
 
 # Fonction pour retirer les fonds du contrat
-function withdraw {
-    echo "Retrait des fonds du contrat..."
+# function withdraw {
+#     echo "Retrait des fonds du contrat..."
     
-    mxpy contract call $CONTRACT_ADDRESS --function="withdraw" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
+#     mxpy contract call $CONTRACT_ADDRESS --function="withdraw" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
+# }
+
+function withdraw {
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo "Retrait des fonds du contrat..."
+    fi
+
+    mxpy contract call $CONTRACT_ADDRESS --function="withdraw" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments str:"$1" $2 --recall-nonce --send
+
 }
 
 # Fonction pour définir l'adresse d'un contrat externe
@@ -233,7 +256,7 @@ case "$1" in
         set_roles
         ;;
     create-nft)
-        create_nft "$2" "$3" "$4" "$5" "$6"
+        create_nft "$2" "$3"
         ;;
     buy-nft)
         buy_nft "$2" "$3"
@@ -242,7 +265,7 @@ case "$1" in
         claim_royalties "$2" "$3" "$4"
         ;;
     withdraw)
-        withdraw
+        withdraw "$2" "$3"
         ;;
     get-token-id)
         get_token_id
@@ -261,6 +284,9 @@ case "$1" in
         ;;
     buy-nft-esdt)
         buy_nft_esdt "$2" "$3" "$4"
+        ;;
+    get-rarety-storage)
+        get_rarety_storage "$2"
         ;;
     help|*)
         display_help

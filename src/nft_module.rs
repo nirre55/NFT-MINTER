@@ -1,13 +1,13 @@
 multiversx_sc::imports!();
 
 const NFT_AMOUNT: u32 = 1;
-const ROYALTIES_MAX: u32 = 10_000;
 
 use crate::storage;
+use crate::attributes_builder;
 
 
 #[multiversx_sc::module]
-pub trait NftModule: storage::StorageModule {
+pub trait NftModule: storage::StorageModule + attributes_builder::AttributesBuilder {
     // endpoints - owner-only
 
     #[only_owner]
@@ -70,16 +70,32 @@ pub trait NftModule: storage::StorageModule {
     }
 
     #[only_owner]
+    #[allow_multiple_var_args]
     #[endpoint(withdraw)]
-    fn withdraw(&self) {
-        let balance = self.blockchain().get_sc_balance(&EgldOrEsdtTokenIdentifier::egld(), 0);
+    fn withdraw(&self, token_identifier: OptionalValue<TokenIdentifier>, token_nonce: OptionalValue<u64>) {
+        // Gestion par défaut si aucun token n'est spécifié
+        let token = match token_identifier {
+            OptionalValue::Some(token) => EgldOrEsdtTokenIdentifier::esdt(token),
+            OptionalValue::None => EgldOrEsdtTokenIdentifier::egld(),
+        };
+
+        let nonce = match token_nonce {
+            OptionalValue::Some(nonce) => nonce,
+            OptionalValue::None => 0,
+        };
+        
+        let balance = self.blockchain().get_sc_balance(&token, nonce);
         require!(balance > BigUint::zero(), "No funds available");
         
         let owner = self.blockchain().get_owner_address();
-        self.send().direct_egld(&owner, &balance);
+        
+        // Envoi direct du token (EGLD ou ESDT) au propriétaire
+        if token.is_egld() {
+            self.send().direct_egld(&owner, &balance);
+        } else {
+            self.send().direct_esdt(&owner, &token.unwrap_esdt(), nonce, &balance);
+        }
     }
-
-    // endpoints
 
     #[payable]
     #[endpoint(buyNft)]
@@ -130,10 +146,7 @@ pub trait NftModule: storage::StorageModule {
 
     #[allow(clippy::type_complexity)]
     #[view(getNftPrice)]
-    fn get_nft_price(
-        &self,
-        nft_nonce: u64,
-    ) -> OptionalValue<MultiValue3<EgldOrEsdtTokenIdentifier, u64, BigUint>> {
+    fn get_nft_price(&self, nft_nonce: u64) -> OptionalValue<MultiValue3<EgldOrEsdtTokenIdentifier, u64, BigUint>> {
         if self.price_tag(nft_nonce).is_empty() {
             // NFT was already sold
             OptionalValue::None
@@ -167,44 +180,31 @@ pub trait NftModule: storage::StorageModule {
     // private
 
     #[allow(clippy::too_many_arguments)]
-    fn create_nft_with_attributes<T: TopEncode>(
+    fn create_nft_with_attributes(
         &self,
         name: ManagedBuffer,
-        royalties: BigUint,
-        attributes: T,
-        uri: ManagedBuffer,
         selling_price: BigUint,
         token_used_as_payment: EgldOrEsdtTokenIdentifier,
         token_used_as_payment_nonce: u64,
     ) -> u64 {
         self.require_token_issued();
-        require!(royalties <= ROYALTIES_MAX, "Royalties cannot exceed 100%");
 
+        let index_to_mint: usize = 5;
         let nft_token_id = self.nft_token_id().get();
 
-        let mut serialized_attributes = ManagedBuffer::new();
-        if let core::result::Result::Err(err) = attributes.top_encode(&mut serialized_attributes) {
-            sc_panic!("Attributes encode error: {}", err.message_bytes());
-        }
+        let attributes  = self.build_attributes_buffer(index_to_mint);
 
-        let attributes_sha256 = self.crypto().sha256(&serialized_attributes);
+        let attributes_sha256 = self.crypto().sha256(&attributes);
         let attributes_hash = attributes_sha256.as_managed_buffer();
-
-        let metadata_uri = ManagedBuffer::from("https://ipfs.io/ipfs/QmP8XL56WtNnRvWUXHh1W8MLAjekMyY5JtMw5FC72Lf3bK/7.json");
-        
-        // Créer un vecteur d'URIs avec l'URI de l'image et l'URI des métadonnées
-        let mut uris = ManagedVec::new();
-        uris.push(uri); // URI de l'image
-        uris.push(metadata_uri); // URI des métadonnées
         
         let nft_nonce = self.send().esdt_nft_create(
             &nft_token_id,
             &BigUint::from(NFT_AMOUNT),
             &name,
-            &royalties,
+            &self.royalties().get(),
             attributes_hash,
             &attributes,
-            &uris,
+            &self.build_uris_vec(index_to_mint),
         );
 
         self.price_tag(nft_nonce).set(&storage::PriceTag {

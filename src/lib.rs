@@ -1,10 +1,13 @@
 #![no_std]
 
+const DEFAULT_IMG_FILE_EXTENSION: &[u8] = ".png".as_bytes();
+
 use multiversx_sc::{derive_imports::*, imports::*};
 
 mod nft_module;
 mod storage;
-
+mod attributes_builder;
+mod rarety_module;
 #[type_abi]
 #[derive(TopEncode, TopDecode)]
 pub struct ExampleAttributes<M: ManagedTypeApi> {
@@ -13,12 +16,22 @@ pub struct ExampleAttributes<M: ManagedTypeApi> {
 }
 
 #[multiversx_sc::contract]
-pub trait NftMinter: nft_module::NftModule + storage::StorageModule {
+pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes_builder::AttributesBuilder + rarety_module::RaretyModule {
     #[init]
     fn init(&self) {}
 
     #[upgrade]
-    fn upgrade(&self) {}
+    fn upgrade(&self) {
+        let image_base_cid = ManagedBuffer::from("Qmcb1DFADr6jJMbdrpbmzokS86frgAmcKkAAPN1Sa8JUUL");
+        let metadata_base_cid = ManagedBuffer::from("QmQT87JFsARd3ccih62MyooeCaVtsvVMqvG1SuVKXJeFs4");
+        self.image_base_cid().set_if_empty(&image_base_cid);
+        self.metadata_base_cid().set_if_empty(&metadata_base_cid);
+        self.royalties().set_if_empty(&BigUint::from(1000u64));
+        self.file_extension().set_if_empty(&ManagedBuffer::new_from_bytes(DEFAULT_IMG_FILE_EXTENSION));
+        self.tags().set_if_empty(&ManagedBuffer::from("world,universe,multiversx,nft"));
+        self.clean_all_sotrage();   
+        self.fill_all_storage(rarety_module::RaretyProperties::Common);
+    }
 
     #[allow_multiple_var_args]
     #[allow(clippy::too_many_arguments)]
@@ -28,13 +41,10 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule {
     fn create_nft(
         &self,
         name: ManagedBuffer,
-        royalties: BigUint,
-        uri: ManagedBuffer,
         selling_price: BigUint,
         opt_token_used_as_payment: OptionalValue<TokenIdentifier>,
-        opt_token_used_as_payment_nonce: OptionalValue<u64>,
-        opt_metadata: OptionalValue<ManagedBuffer>,
-    ) {
+        opt_token_used_as_payment_nonce: OptionalValue<u64>
+        ) {
         let token_used_as_payment = match opt_token_used_as_payment {
             OptionalValue::Some(token) => EgldOrEsdtTokenIdentifier::esdt(token),
             OptionalValue::None => EgldOrEsdtTokenIdentifier::egld(),
@@ -53,25 +63,8 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule {
             }
         };
 
-        let metadata = match opt_metadata {
-            OptionalValue::Some(meta) => meta,
-            OptionalValue::None => ManagedBuffer::from("metadata:QmP8XL56WtNnRvWUXHh1W8MLAjekMyY5JtMw5FC72Lf3bK/7.json"),
-        };
-
-        let tags = ManagedBuffer::from("tags:worldforge");
-        let mut combined_metadata = metadata;
-        combined_metadata.append(&ManagedBuffer::from(";"));
-        combined_metadata.append(&tags);
-
-        let attributes = ExampleAttributes::<Self::Api> {
-            creation_timestamp: self.blockchain().get_block_timestamp(),
-            metadata: combined_metadata,
-        };
         self.create_nft_with_attributes(
             name,
-            royalties,
-            attributes,
-            uri,
             selling_price,
             token_used_as_payment,
             token_used_as_payment_nonce,
