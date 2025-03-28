@@ -83,10 +83,10 @@ pub trait RaretyModule: storage::StorageModule {
             let rand_index = rand_source.next_usize_in_range(0, source.len());
             let selected_item = source.get(rand_index);
     
-            // Ajouter à `filledStorage`
+            // Ajouter à `destination_rarety_storage`
             destination.push(&selected_item);
     
-            // Supprimer de `sourceStorage`
+            // Supprimer de `source_rarety_storage`
             source.swap_remove(rand_index);
         }
     }
@@ -115,15 +115,6 @@ pub trait RaretyModule: storage::StorageModule {
         let total_objects_rares = self.get_percentage_count(RaretyProperties::Rare.drop_rate(), total_objects);
         let total_objects_epics = self.get_percentage_count(RaretyProperties::Epic.drop_rate(), total_objects);
         let total_objects_legendarys = self.get_percentage_count(RaretyProperties::Legendary.drop_rate(), total_objects);
-
-        sc_print!(
-            "total_objects {}, total_objects_uncommons {}, total_objects_rares {}, total_objects_epics {}, total_objects_legendarys {}",
-            total_objects,
-            total_objects_uncommons,
-            total_objects_rares,
-            total_objects_epics,
-            total_objects_legendarys
-        );
 
         //self.fill_storage_randomly(source_rarety_storage.clone(), RaretyProperties::Common, total_objects_communs);
         self.fill_storage_randomly(source_rarety_storage.clone(), RaretyProperties::Uncommon, total_objects_uncommons);

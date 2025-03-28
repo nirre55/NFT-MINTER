@@ -18,10 +18,7 @@ pub struct ExampleAttributes<M: ManagedTypeApi> {
 #[multiversx_sc::contract]
 pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes_builder::AttributesBuilder + rarety_module::RaretyModule {
     #[init]
-    fn init(&self) {}
-
-    #[upgrade]
-    fn upgrade(&self) {
+    fn init(&self) {
         let image_base_cid = ManagedBuffer::from("Qmcb1DFADr6jJMbdrpbmzokS86frgAmcKkAAPN1Sa8JUUL");
         let metadata_base_cid = ManagedBuffer::from("QmQT87JFsARd3ccih62MyooeCaVtsvVMqvG1SuVKXJeFs4");
         self.image_base_cid().set_if_empty(&image_base_cid);
@@ -31,6 +28,10 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
         self.tags().set_if_empty(&ManagedBuffer::from("world,universe,multiversx,nft"));
         self.clean_all_sotrage();   
         self.fill_all_storage(rarety_module::RaretyProperties::Common);
+    }
+
+    #[upgrade]
+    fn upgrade(&self) {
     }
 
     #[allow_multiple_var_args]
