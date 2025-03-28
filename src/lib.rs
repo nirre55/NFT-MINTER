@@ -32,6 +32,8 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
 
     #[upgrade]
     fn upgrade(&self) {
+        self.clean_all_sotrage();   
+        self.fill_all_storage(rarety_module::RaretyProperties::Common);
     }
 
     #[allow_multiple_var_args]

@@ -40,23 +40,23 @@ pub trait StorageModule {
      fn tags(&self) -> SingleValueMapper<ManagedBuffer>;
 
      // rarety
-     #[view(communIndex)]
-     #[storage_mapper("common_index")]
-     fn common_index(&self) -> VecMapper<usize>;
+     #[view(communItems)]
+     #[storage_mapper("common_items")]
+     fn common_items(&self) -> VecMapper<usize>;
 
-     #[view(uncommunIndex)]
-     #[storage_mapper("uncommon_index")]
-     fn uncommon_index(&self) -> VecMapper<usize>;
+     #[view(uncommunItems)]
+     #[storage_mapper("uncommon_items")]
+     fn uncommon_items(&self) -> VecMapper<usize>;
      
-     #[view(rareIndex)]
-     #[storage_mapper("rare_index")]
-     fn rare_index(&self) -> VecMapper<usize>;
+     #[view(rareItems)]
+     #[storage_mapper("rare_items")]
+     fn rare_items(&self) -> VecMapper<usize>;
 
-     #[view(epicIndex)]
-     #[storage_mapper("epic_index")]
-     fn epic_index(&self) -> VecMapper<usize>;
+     #[view(epicItems)]
+     #[storage_mapper("epic_items")]
+     fn epic_items(&self) -> VecMapper<usize>;
 
-     #[view(legendaryIndex)]
-     #[storage_mapper("legendary_index")]
-     fn legendary_index(&self) -> VecMapper<usize>;
+     #[view(legendaryItems)]
+     #[storage_mapper("legendary_items")]
+     fn legendary_items(&self) -> VecMapper<usize>;
 } 

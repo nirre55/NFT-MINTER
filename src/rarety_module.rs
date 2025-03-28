@@ -33,21 +33,21 @@ pub trait RaretyModule: storage::StorageModule {
 
     fn get_storage_by_rarety(&self, rarety_storage: RaretyProperties) -> VecMapper<usize> {
         match rarety_storage {
-            RaretyProperties::Common => self.common_index(),
-            RaretyProperties::Uncommon => self.uncommon_index(),
-            RaretyProperties::Rare => self.rare_index(),
-            RaretyProperties::Epic => self.epic_index(),
-            RaretyProperties::Legendary => self.legendary_index(),
+            RaretyProperties::Common => self.common_items(),
+            RaretyProperties::Uncommon => self.uncommon_items(),
+            RaretyProperties::Rare => self.rare_items(),
+            RaretyProperties::Epic => self.epic_items(),
+            RaretyProperties::Legendary => self.legendary_items(),
         }
     }
     
     fn add_element_in_storage(&self, rarety_storage: RaretyProperties, valeur: usize) {
         match rarety_storage {
-            RaretyProperties::Common => self.common_index().push(&valeur),
-            RaretyProperties::Uncommon => self.uncommon_index().push(&valeur),
-            RaretyProperties::Rare => self.rare_index().push(&valeur),
-            RaretyProperties::Epic => self.epic_index().push(&valeur),
-            RaretyProperties::Legendary => self.legendary_index().push(&valeur),
+            RaretyProperties::Common => self.common_items().push(&valeur),
+            RaretyProperties::Uncommon => self.uncommon_items().push(&valeur),
+            RaretyProperties::Rare => self.rare_items().push(&valeur),
+            RaretyProperties::Epic => self.epic_items().push(&valeur),
+            RaretyProperties::Legendary => self.legendary_items().push(&valeur),
         };
     }
 
@@ -98,11 +98,11 @@ pub trait RaretyModule: storage::StorageModule {
     }
 
     fn clean_all_sotrage(&self){
-        self.common_index().clear();
-        self.uncommon_index().clear();
-        self.rare_index().clear();  
-        self.epic_index().clear();
-        self.legendary_index().clear();
+        self.common_items().clear();
+        self.uncommon_items().clear();
+        self.rare_items().clear();  
+        self.epic_items().clear();
+        self.legendary_items().clear();
     }
 
 
