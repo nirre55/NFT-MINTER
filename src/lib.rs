@@ -27,13 +27,13 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
         self.file_extension().set_if_empty(&ManagedBuffer::new_from_bytes(DEFAULT_IMG_FILE_EXTENSION));
         self.tags().set_if_empty(&ManagedBuffer::from("world,universe,multiversx,nft"));
         self.clean_all_sotrage();   
-        self.fill_all_storage(rarety_module::RaretyProperties::Common);
+        self.fill_all_storage(rarety_module::RarityProperties::Common);
     }
 
     #[upgrade]
     fn upgrade(&self) {
-        self.clean_all_sotrage();   
-        self.fill_all_storage(rarety_module::RaretyProperties::Common);
+        //self.clean_all_sotrage();   
+        self.fill_all_storage(rarety_module::RarityProperties::Common);
     }
 
     #[allow_multiple_var_args]
