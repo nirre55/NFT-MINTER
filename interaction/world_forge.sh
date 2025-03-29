@@ -35,6 +35,8 @@ function display_help {
     echo "  buy-nft-esdt <token> <prix> <nonce> - Achète un NFT avec prix en ESDT"
     echo "  set-contract-address <adresse> - Définit l'adresse d'un contrat externe"
     echo "  get-rarety-storage <nom> - Récupère le storage du contrat"
+    echo "  clean-all-storage       - Nettoie tout le storage"
+    echo "  fill-all               - Remplit tout le storage"
     echo "  help                    - Affiche cette aide"
     echo ""
 }
@@ -185,6 +187,7 @@ function upgrade {
     mxpy contract upgrade $CONTRACT_ADDRESS --bytecode="output/world-forge.wasm" --pem=$PEM_FILE --metadata-payable --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
 }
 
+# Fonction pour récupérer le storage du contrat
 function get_rarety_storage {
     if [ -z "$1" ]; then
         echo "Erreur: Veuillez spécifier le nom de View."
@@ -194,6 +197,20 @@ function get_rarety_storage {
     echo "recuperation du storage..."
     
     mxpy contract query $CONTRACT_ADDRESS --function="$1" --proxy=$PROXY 
+}
+
+# Fonction pour nettoyer tout les rarety storage
+function clean_all_storage {
+    echo "Nettoyage de tout le storage..."
+    
+    mxpy contract call $CONTRACT_ADDRESS --function="clearAllStorage" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
+}
+
+# Fonction pour remplir tout les rarety storages
+function fill_all {
+    echo "Remplissage de tout les storage..."
+    
+    mxpy contract call $CONTRACT_ADDRESS --function="fillAll" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
 }
 
 # Fonction pour mettre à jour le prix d'un NFT
@@ -210,12 +227,6 @@ function update_nft_price {
 }
 
 # Fonction pour retirer les fonds du contrat
-# function withdraw {
-#     echo "Retrait des fonds du contrat..."
-    
-#     mxpy contract call $CONTRACT_ADDRESS --function="withdraw" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
-# }
-
 function withdraw {
     if [ -z "$1" ] || [ -z "$2" ]; then
         echo "Retrait des fonds du contrat..."
@@ -287,6 +298,12 @@ case "$1" in
         ;;
     get-rarety-storage)
         get_rarety_storage "$2"
+        ;;
+    clean-all-storage)
+        clean_all_storage
+        ;;
+    fill-all)
+        fill_all
         ;;
     help|*)
         display_help

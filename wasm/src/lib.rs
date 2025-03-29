@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           14
+// Endpoints:                           16
 // Async Callback:                       1
-// Total number of exported functions:  17
+// Total number of exported functions:  19
 
 #![no_std]
 
@@ -34,6 +34,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         rareItems => rare_items
         epicItems => epic_items
         legendaryItems => legendary_items
+        clearAllStorage => clean_all_sotrage
+        fillAll => fill_all
     )
 }
 
