@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           16
+// Endpoints:                           12
 // Async Callback:                       1
-// Total number of exported functions:  19
+// Total number of exported functions:  15
 
 #![no_std]
 
@@ -21,21 +21,17 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         upgrade => upgrade
         createNft => create_nft
-        getNftAttributes => get_nft_attributes
-        updateNftPrice => update_nft_price
         issueToken => issue_token
         setLocalRoles => set_local_roles
-        withdraw => withdraw
         buyNft => buy_nft
-        setContractAddress => set_contract_address
-        getNftPrice => get_nft_price
-        communItems => common_items
-        uncommunItems => uncommon_items
+        commonItems => common_items
+        uncommonItems => uncommon_items
         rareItems => rare_items
         epicItems => epic_items
         legendaryItems => legendary_items
         clearAllStorage => clean_all_sotrage
         fillAll => fill_all
+        getNftAttributes => get_nft_attributes
     )
 }
 

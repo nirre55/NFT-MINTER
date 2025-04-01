@@ -19,10 +19,6 @@ pub trait StorageModule {
      #[storage_mapper("priceTag")]
      fn price_tag(&self, nft_nonce: u64) -> SingleValueMapper<PriceTag<Self::Api>>;
 
-     #[storage_mapper("contractAddress")]
-     fn contract_address(&self) -> SingleValueMapper<ManagedAddress>;
-
-
      // attributes
      #[storage_mapper("imageBaseCid")]
      fn image_base_cid(&self) -> SingleValueMapper<ManagedBuffer>;
@@ -40,11 +36,11 @@ pub trait StorageModule {
      fn tags(&self) -> SingleValueMapper<ManagedBuffer>;
 
      // rarety
-     #[view(communItems)]
+     #[view(commonItems)]
      #[storage_mapper("common_items")]
      fn common_items(&self) -> VecMapper<usize>;
 
-     #[view(uncommunItems)]
+     #[view(uncommonItems)]
      #[storage_mapper("uncommon_items")]
      fn uncommon_items(&self) -> VecMapper<usize>;
      

@@ -1,19 +1,15 @@
 #![no_std]
+multiversx_sc::imports!();
+multiversx_sc::derive_imports!();
 
 const DEFAULT_IMG_FILE_EXTENSION: &[u8] = ".png".as_bytes();
 
-use multiversx_sc::{derive_imports::*, imports::*};
 
 mod nft_module;
 mod storage;
 mod attributes_builder;
 mod rarety_module;
-#[type_abi]
-#[derive(TopEncode, TopDecode)]
-pub struct ExampleAttributes<M: ManagedTypeApi> {
-    pub creation_timestamp: u64,
-    pub metadata: ManagedBuffer<M>,
-}
+
 
 #[multiversx_sc::contract]
 pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes_builder::AttributesBuilder + rarety_module::RaretyModule {
@@ -30,6 +26,9 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
 
     #[upgrade]
     fn upgrade(&self) {
+        let base_cid = ManagedBuffer::from("QmQhfYHg5XrokfkCcz3kbDAaAG323b71GxurwxtJaFgNCS");
+        self.image_base_cid().set(&base_cid);
+        self.metadata_base_cid().set(&base_cid);
     }
 
     #[allow_multiple_var_args]
@@ -68,18 +67,5 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
             token_used_as_payment,
             token_used_as_payment_nonce,
         );
-    }
-
-    #[view(getNftAttributes)]
-    fn get_nft_attributes(&self, nft_nonce: u64) -> ExampleAttributes<Self::Api> {
-        let nft_token_id = self.nft_token_id().get();
-        let nft_info = self.blockchain().get_esdt_token_data(
-            &self.blockchain().get_sc_address(),
-            &nft_token_id,
-            nft_nonce,
-        );
-        
-        let attributes = nft_info.decode_attributes::<ExampleAttributes<Self::Api>>();
-        attributes
     }
 }

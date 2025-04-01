@@ -142,4 +142,16 @@ pub trait RaretyModule: storage::StorageModule {
     fn fill_all(&self) {
         self.fill_all_storage(RarityProperties::Common);
     }
+
+    #[view(getNftAttributes)]
+    fn get_nft_attributes(&self, nft_nonce: u64) -> ManagedBuffer {
+        let nft_token_id = self.nft_token_id().get();
+        let nft_info = self.blockchain().get_esdt_token_data(
+            &self.blockchain().get_sc_address(),
+            &nft_token_id,
+            nft_nonce,
+        );
+        
+        nft_info.attributes
+    }
 }
