@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           12
+// Endpoints:                           13
 // Async Callback:                       1
-// Total number of exported functions:  15
+// Total number of exported functions:  16
 
 #![no_std]
 
@@ -29,6 +29,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         rareItems => rare_items
         epicItems => epic_items
         legendaryItems => legendary_items
+        getNftName => get_nft_name
         clearAllStorage => clean_all_sotrage
         fillAll => fill_all
         getNftAttributes => get_nft_attributes

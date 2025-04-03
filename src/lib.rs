@@ -38,7 +38,6 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
     #[endpoint(createNft)]
     fn create_nft(
         &self,
-        name: ManagedBuffer,
         selling_price: BigUint,
         opt_token_used_as_payment: OptionalValue<TokenIdentifier>,
         opt_token_used_as_payment_nonce: OptionalValue<u64>
@@ -62,7 +61,6 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
         };
 
         self.create_nft_with_attributes(
-            name,
             selling_price,
             token_used_as_payment,
             token_used_as_payment_nonce,

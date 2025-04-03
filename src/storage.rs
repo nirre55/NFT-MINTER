@@ -55,4 +55,8 @@ pub trait StorageModule {
      #[view(legendaryItems)]
      #[storage_mapper("legendary_items")]
      fn legendary_items(&self) -> VecMapper<usize>;
+
+     // nft name
+     #[storage_mapper("nftName")]
+     fn nft_name(&self, index: usize) -> SingleValueMapper<ManagedBuffer>;
 } 

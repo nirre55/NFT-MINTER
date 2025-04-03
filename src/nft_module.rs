@@ -117,7 +117,6 @@ pub trait NftModule: storage::StorageModule + attributes_builder::AttributesBuil
     #[allow(clippy::too_many_arguments)]
     fn create_nft_with_attributes(
         &self,
-        name: ManagedBuffer,
         selling_price: BigUint,
         token_used_as_payment: EgldOrEsdtTokenIdentifier,
         token_used_as_payment_nonce: u64,
@@ -125,12 +124,15 @@ pub trait NftModule: storage::StorageModule + attributes_builder::AttributesBuil
         self.require_token_issued();
 
         let index_to_mint: usize = self.drop_item();
+        self.add_nft_name(index_to_mint);
         let nft_token_id = self.nft_token_id().get();
 
         let attributes  = self.build_attributes_buffer(index_to_mint);
 
         let attributes_sha256 = self.crypto().sha256(&attributes);
         let attributes_hash = attributes_sha256.as_managed_buffer();
+
+        let name = self.nft_name(index_to_mint).get();
         
         let nft_nonce = self.send().esdt_nft_create(
             &nft_token_id,

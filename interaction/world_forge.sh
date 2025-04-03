@@ -22,7 +22,7 @@ function display_help {
     echo "  deploy                   - Déploie le contrat"
     echo "  issue-token <nom> <ticker> - Crée une collection NFT"
     echo "  set-roles               - Attribue les rôles nécessaires"
-    echo "  create-nft <nom> <prix> - Crée un NFT et le met en vente"
+    echo "  create-nft <prix> - Crée un NFT avec un prix"
     echo "  buy-nft <nonce>         - Achète un NFT"
     echo "  upgrade               - Met à jour le contrat"
     echo "  create-nft-esdt <nom> <prix_esdt> <token_id> - Crée un NFT avec prix en ESDT"
@@ -30,6 +30,8 @@ function display_help {
     echo "  get-rarety-storage <nom> - Récupère le storage du contrat"
     echo "  clean-all-storage       - Nettoie tout le storage"
     echo "  fill-all               - Remplit tout le storage"
+    echo "  add-nft-name <index> <name> - Ajoute un nom de NFT dans le storage"
+    echo "  get-nft-name <index>   - Récupère le nom du NFT"
     echo "  help                    - Affiche cette aide"
     echo ""
 }
@@ -69,15 +71,15 @@ function set_roles {
 
 # Fonction pour créer un NFT
 function create_nft {
-    if [ -z "$1" ] || [ -z "$2" ]; then
+    if [ -z "$1" ]; then
         echo "Erreur: Veuillez spécifier tous les paramètres."
-        echo "Usage: $0 create-nft <nom> <royalties> <uri> <prix>"
+        echo "Usage: $0 create-nft  <prix>"
         exit 1
     fi
     
-    echo "Création du NFT '$1' avec un prix $2..."
+    echo "Création du NFT avec un prix $1..."
     
-    mxpy contract call $CONTRACT_ADDRESS --function="createNft" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments str:"$1" $2 --recall-nonce --send
+    mxpy contract call $CONTRACT_ADDRESS --function="createNft" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments $1 --recall-nonce --send
 }
 
 # Fonction pour créer un NFT avec prix en USDC
@@ -138,7 +140,7 @@ function upgrade {
 function get_rarety_storage {
     if [ -z "$1" ]; then
         echo "Erreur: Veuillez spécifier le nom de View."
-        echo "Usage: $0 get-rarety-storage"
+        echo "Usage: $0 get-rarety-storage <RaretyItems>"
         exit 1
     fi
     echo "recuperation du storage..."
@@ -160,6 +162,29 @@ function fill_all {
     mxpy contract call $CONTRACT_ADDRESS --function="fillAll" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
 }
 
+# Fonction pour récupérer le storage du contrat
+function add_nft_name {
+    if [ -z "$1" ] || [ -z "$2" ] ; then
+        echo "Erreur: Veuillez spécifier l'index et le nom."
+        echo "Usage: $0 add_nft_name <index> <name>"
+        exit 1
+    fi
+    echo "ajout dans le storage..."
+    
+    mxpy contract call $CONTRACT_ADDRESS --function="addNftName" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments $1 str:"$2" --recall-nonce --send
+}
+
+# Fonction pour récupérer le nom du NFT
+function get_nft_name {
+    if [ -z "$1" ]; then
+        echo "Erreur: Veuillez spécifier l'index "
+        echo "Usage: $0 get_nft_name <index>"
+        exit 1
+    fi
+    echo "recuperation du storage..."
+    
+    mxpy contract query $CONTRACT_ADDRESS --function="getNftName" --arguments $1 --proxy=$PROXY 
+}
 
 # Traitement des commandes
 case "$1" in
@@ -176,7 +201,7 @@ case "$1" in
         set_roles
         ;;
     create-nft)
-        create_nft "$2" "$3"
+        create_nft "$2"
         ;;
     buy-nft)
         buy_nft "$2" "$3"
@@ -195,6 +220,12 @@ case "$1" in
         ;;
     fill-all)
         fill_all
+        ;;
+    add-nft-name)
+        add_nft_name "$2" "$3"
+        ;;
+    get-nft-name)
+        get_nft_name "$2"
         ;;
     help|*)
         display_help
