@@ -167,7 +167,7 @@ pub trait NftModule: storage::StorageModule + attributes_builder::AttributesBuil
 
         let nft_token_id = self.nft_token_id().get();
 
-        let nft_count = 3;
+        let nft_count: usize = self.get_nft_count();
         let mut nft_transfers =  ManagedVec::new();
         
         for _ in 0..nft_count {
@@ -213,6 +213,12 @@ pub trait NftModule: storage::StorageModule + attributes_builder::AttributesBuil
         nft_nonce
     }
 
+    fn get_nft_count(&self) -> usize {
+        let mut rand_source = RandomnessSource::new();    
+        let rand_index = rand_source.next_usize_in_range(self.min_nft_per_pack().get(), self.max_nft_per_pack().get() + 1);
+        rand_index
+    }
+
     // Endpoint pour définir le pack_price
     #[only_owner] // Restreint l'accès au propriétaire du contrat
     #[endpoint(setPackPrice)]
@@ -226,5 +232,25 @@ pub trait NftModule: storage::StorageModule + attributes_builder::AttributesBuil
 
     fn require_token_issued(&self) {
         require!(!self.nft_token_id().is_empty(), "Token not issued");
+    }
+
+    #[view(getNftMetadata)]
+    fn get_nft_metadata(&self, nonce: u64) -> ManagedBuffer {
+        // Vérifier que le token_id est valide
+        let token_id = self.nft_token_id().get();
+        require!(token_id.is_valid_esdt_identifier(), "Invalid token ID");
+
+        // Récupérer les données du NFT via l'API blockchain
+        let nft_data = self.blockchain().get_esdt_token_data(
+            &self.blockchain().get_sc_address(), // Adresse du contrat
+            &token_id,
+            nonce,
+        );
+
+        // Vérifier que le NFT existe (nonce > 0 et quantité > 0)
+        require!(nft_data.amount > 0, "NFT does not exist");
+
+        // Retourner les attributs (métadonnées)
+        nft_data.attributes
     }
 }

@@ -209,6 +209,18 @@ function set_pack_price {
     mxpy contract call $CONTRACT_ADDRESS --function="setPackPrice" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments $1 --recall-nonce --send
 }
 
+# Fonction pour récupérer les métadonnées d'un NFT
+function get_nft_metadata {
+    if [ -z "$1" ]; then
+        echo "Erreur: Veuillez spécifier le nonce nft."
+        echo "Usage: $0 get-nft-metadata <nonce>"
+        exit 1
+    fi
+    echo "nft metadata ..."
+    
+    mxpy contract query $CONTRACT_ADDRESS --function="getNftMetadata" --proxy=$PROXY --arguments $1 
+}
+
 # Traitement des commandes
 case "$1" in
     deploy)
@@ -255,6 +267,9 @@ case "$1" in
         ;;
     set-pack-price)
         set_pack_price "$2"
+        ;;
+    get-nft-metadata)
+        get_nft_metadata "$2"
         ;;
     help|*)
         display_help

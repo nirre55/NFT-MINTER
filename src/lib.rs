@@ -29,13 +29,16 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
         self.file_extension().set_if_empty(&file_extention);
         self.tags().set_if_empty(&tags);
         self.pack_price().set_if_empty(&default_price);
+        self.min_nft_per_pack().set_if_empty(3);
+        self.max_nft_per_pack().set_if_empty(5);
     }
 
     #[upgrade]
     fn upgrade(&self) {
+
         let base_cid = ManagedBuffer::from("QmQhfYHg5XrokfkCcz3kbDAaAG323b71GxurwxtJaFgNCS");
-        self.image_base_cid().set(&base_cid);
-        self.metadata_base_cid().set(&base_cid);
+        self.image_base_cid().set_if_empty(&base_cid);
+        self.metadata_base_cid().set_if_empty(&base_cid);
     }
 
     #[allow_multiple_var_args]

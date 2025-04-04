@@ -67,4 +67,10 @@ pub trait StorageModule {
      // Storage mapper pour le prix de chaque NFT
     #[storage_mapper("packPrice")]
     fn pack_price(&self) -> SingleValueMapper<BigUint>;
+
+    #[storage_mapper("minNftPerPack")]
+    fn min_nft_per_pack(&self) -> SingleValueMapper<usize>;
+
+    #[storage_mapper("maxNftPerPack")]
+    fn max_nft_per_pack(&self) -> SingleValueMapper<usize>;
 } 
