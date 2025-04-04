@@ -59,4 +59,12 @@ pub trait StorageModule {
      // nft name
      #[storage_mapper("nftName")]
      fn nft_name(&self, index: usize) -> SingleValueMapper<ManagedBuffer>;
+
+     // Storage mapper pour la liste des NFTs disponibles
+     #[storage_mapper("noncePerIndex")]
+     fn nonce_per_index(&self, index: usize) -> VecMapper<u64>;
+
+     // Storage mapper pour le prix de chaque NFT
+    #[storage_mapper("packPrice")]
+    fn pack_price(&self) -> SingleValueMapper<BigUint>;
 } 

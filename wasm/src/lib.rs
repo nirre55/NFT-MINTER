@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           13
+// Endpoints:                           15
 // Async Callback:                       1
-// Total number of exported functions:  16
+// Total number of exported functions:  18
 
 #![no_std]
 
@@ -24,6 +24,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         issueToken => issue_token
         setLocalRoles => set_local_roles
         buyNft => buy_nft
+        buyPack => buy_pack
+        setPackPrice => set_pack_price
         commonItems => common_items
         uncommonItems => uncommon_items
         rareItems => rare_items

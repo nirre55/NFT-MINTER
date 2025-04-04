@@ -153,6 +153,77 @@ pub trait NftModule: storage::StorageModule + attributes_builder::AttributesBuil
         nft_nonce
     }
 
+
+    #[payable("EGLD")]
+    #[endpoint(buyPack)]
+    fn buy_pack(&self) {
+        let payment_amount = self.call_value().egld().clone_value();
+        let pack_price = self.pack_price().get();
+        
+        require!(
+            payment_amount == pack_price,
+            "Invalid amount as payment"
+        );
+
+        let nft_token_id = self.nft_token_id().get();
+
+        let nft_count = 3;
+        let mut nft_transfers =  ManagedVec::new();
+        
+        for _ in 0..nft_count {
+            let nft_nonce = self.create_nft_for_pack();
+            nft_transfers.push(EsdtTokenPayment::new(
+                nft_token_id.clone(),
+                nft_nonce,
+                BigUint::from(NFT_AMOUNT)
+            ));
+        }
+
+        self.tx()
+            .to(ToCaller)
+            .multi_esdt(nft_transfers)
+            .transfer();
+    }
+
+    fn create_nft_for_pack(&self) -> u64 {
+        self.require_token_issued();
+
+        let index_to_mint: usize = self.drop_item();
+        self.add_nft_name(index_to_mint);
+        let nft_token_id = self.nft_token_id().get();
+
+        let attributes  = self.build_attributes_buffer(index_to_mint);
+
+        let attributes_sha256 = self.crypto().sha256(&attributes);
+        let attributes_hash = attributes_sha256.as_managed_buffer();
+
+        let name = self.nft_name(index_to_mint).get();
+        
+        let nft_nonce = self.send().esdt_nft_create(
+            &nft_token_id,
+            &BigUint::from(NFT_AMOUNT),
+            &name,
+            &self.royalties().get(),
+            attributes_hash,
+            &attributes,
+            &self.build_uris_vec(index_to_mint),
+        );
+        self.nonce_per_index(index_to_mint).push(&nft_nonce);
+
+        nft_nonce
+    }
+
+    // Endpoint pour définir le pack_price
+    #[only_owner] // Restreint l'accès au propriétaire du contrat
+    #[endpoint(setPackPrice)]
+    fn set_pack_price(&self, price: BigUint) {
+        // Vérification optionnelle : s'assurer que le prix est positif
+        require!(price > 0, "Price must be greater than zero");
+
+        // Mise à jour du storage
+        self.pack_price().set(&price);
+    }
+
     fn require_token_issued(&self) {
         require!(!self.nft_token_id().is_empty(), "Token not issued");
     }

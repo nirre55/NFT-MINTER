@@ -5,7 +5,9 @@ PROXY="https://devnet-gateway.multiversx.com"
 CHAIN="D"
 PEM_FILE="/home/mehdi/Desktop/smart-contract/multiversx_projets/wallet/wallet.pem"
 ALICE_WALLET="/home/mehdi/Desktop/smart-contract/multiversx_projets/wallet/walletAlice.pem"
+BOB_WALLET="/home/mehdi/Desktop/smart-contract/multiversx_projets/wallet/walletBob.pem"
 GAS_LIMIT=600000000
+PACK_PRICE=1000000000000000000
 
 
 
@@ -32,6 +34,8 @@ function display_help {
     echo "  fill-all               - Remplit tout le storage"
     echo "  add-nft-name <index> <name> - Ajoute un nom de NFT dans le storage"
     echo "  get-nft-name <index>   - Récupère le nom du NFT"
+    echo "  buy-pack               - Achète un pack de NFT"
+    echo "  set-pack-price <price> - Définit le prix du pack"
     echo "  help                    - Affiche cette aide"
     echo ""
 }
@@ -186,6 +190,25 @@ function get_nft_name {
     mxpy contract query $CONTRACT_ADDRESS --function="getNftName" --arguments $1 --proxy=$PROXY 
 }
 
+# Fonction pour acheter un pack de NFT
+function buy_pack {
+    echo "Achat de pack NFT."
+    
+    mxpy contract call $CONTRACT_ADDRESS --function="buyPack" --value=$PACK_PRICE --pem=$ALICE_WALLET --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --recall-nonce --send
+}
+
+# Fonction pour ajouter un prix de pack
+function set_pack_price {
+    if [ -z "$1" ]; then
+        echo "Erreur: Veuillez spécifier le prix du pack."
+        echo "Usage: $0 set-parck-price <price>"
+        exit 1
+    fi
+    echo "prix updated ..."
+    
+    mxpy contract call $CONTRACT_ADDRESS --function="setPackPrice" --pem=$PEM_FILE --gas-limit=$GAS_LIMIT --proxy=$PROXY --chain=$CHAIN --arguments $1 --recall-nonce --send
+}
+
 # Traitement des commandes
 case "$1" in
     deploy)
@@ -226,6 +249,12 @@ case "$1" in
         ;;
     get-nft-name)
         get_nft_name "$2"
+        ;;
+    buy-pack)
+        buy_pack
+        ;;
+    set-pack-price)
+        set_pack_price "$2"
         ;;
     help|*)
         display_help

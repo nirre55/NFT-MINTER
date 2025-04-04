@@ -17,11 +17,18 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
     fn init(&self) {
         let image_base_cid = ManagedBuffer::from("Qmcb1DFADr6jJMbdrpbmzokS86frgAmcKkAAPN1Sa8JUUL");
         let metadata_base_cid = ManagedBuffer::from("QmQT87JFsARd3ccih62MyooeCaVtsvVMqvG1SuVKXJeFs4");
+        let roaylties =BigUint::from(1000u64); // 10% royalties
+        let file_extention = ManagedBuffer::new_from_bytes(DEFAULT_IMG_FILE_EXTENSION);
+        let tags = ManagedBuffer::from("world,universe,multiversx,nft");
+        let default_price = BigUint::from(1_000_000_000_000_000_000u64); // 1 EGLD
+
+        // Set default values
         self.image_base_cid().set_if_empty(&image_base_cid);
         self.metadata_base_cid().set_if_empty(&metadata_base_cid);
-        self.royalties().set_if_empty(&BigUint::from(1000u64));
-        self.file_extension().set_if_empty(&ManagedBuffer::new_from_bytes(DEFAULT_IMG_FILE_EXTENSION));
-        self.tags().set_if_empty(&ManagedBuffer::from("world,universe,multiversx,nft"));
+        self.royalties().set_if_empty(&roaylties);
+        self.file_extension().set_if_empty(&file_extention);
+        self.tags().set_if_empty(&tags);
+        self.pack_price().set_if_empty(&default_price);
     }
 
     #[upgrade]
@@ -66,4 +73,5 @@ pub trait NftMinter: nft_module::NftModule + storage::StorageModule + attributes
             token_used_as_payment_nonce,
         );
     }
+    
 }
