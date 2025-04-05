@@ -63,6 +63,22 @@ pub trait RaretyModule: storage::StorageModule {
         }
     }
 
+    //TODO: shuffle storage A TESTE
+    fn shuffle_storage(&self, rarety_storage: RarityProperties) {
+        let mut source = self.get_storage_by_rarety(rarety_storage);
+        let total_items = source.len();
+        require!(total_items > 0, "Storage is empty");
+        let mut rand_source = RandomnessSource::new();
+        
+        for i in 1..=total_items {
+            let rand_index = rand_source.next_usize_in_range(i, total_items + 1);
+            let selected_index_item = source.get(i);
+            let selected_rand_index_item = source.get(rand_index);
+            source.set(i, &selected_rand_index_item);
+            source.set(rand_index, &selected_index_item);
+        }
+    }
+
     fn fill_storage_randomly(&self, source_rarety_storage: RarityProperties, destination_rarety_storage: RarityProperties, count: usize) {
         let mut source = self.get_storage_by_rarety(source_rarety_storage);
     
@@ -86,6 +102,7 @@ pub trait RaretyModule: storage::StorageModule {
     fn fill_all_storage(&self, source_rarety_storage: RarityProperties) {      
 
         self.fill_storage_with_max_elements(&source_rarety_storage, MAX_NFT_COUNTRY_BORDER);
+        self.shuffle_storage(source_rarety_storage);
         let total_objects = self.get_storage_by_rarety(source_rarety_storage).len();
         //let total_objects_communs = self.get_percentage_count(RarityProperties::Common.drop_rate(), total_objects);
         let total_objects_uncommons = self.get_percentage_count(RarityProperties::Uncommon.drop_rate(), total_objects);
