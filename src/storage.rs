@@ -12,7 +12,7 @@ pub struct PriceTag<M: ManagedTypeApi> {
 #[multiversx_sc::module]
 pub trait StorageModule {
      // storage
-
+     #[view(nftTokenId)]
      #[storage_mapper("nftTokenId")]
      fn nft_token_id(&self) -> SingleValueMapper<TokenIdentifier>;
  

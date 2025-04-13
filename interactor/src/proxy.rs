@@ -170,6 +170,15 @@ where
             .original_result()
     }
 
+    pub fn nft_token_id(
+        self,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, TokenIdentifier<Env::Api>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("nftTokenId")
+            .original_result()
+    }
+
     pub fn common_items(
         self,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, usize>> {

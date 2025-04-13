@@ -6,8 +6,25 @@ use rust_interact::{config::Config, ContractInteract};
 // Can be run with `sc-meta test`.
 #[tokio::test]
 #[ignore = "run on demand, relies on real blockchain state"]
-async fn deploy_test_world_forge() {
+async fn deploy_test_and_create_collection_without_roles_world_forge() {
     let mut interactor = ContractInteract::new(Config::new()).await;
 
     interactor.deploy().await;
+    let token_name = "WorldForge";
+    let token_ticker = "WFORGE";
+    interactor.issue_token(token_name, token_ticker).await;
+    interactor.nft_token_id().await;
 }
+
+#[tokio::test]
+#[ignore = "run on demand, relies on real blockchain state"]
+async fn deploy_test_and_create_collection_with_roles_world_forge() {
+    let mut interactor = ContractInteract::new(Config::new()).await;
+
+    interactor.deploy().await;
+    let token_name = "WorldForge";
+    let token_ticker = "WFORGE";
+    interactor.issue_token(token_name, token_ticker).await;
+    interactor.set_local_roles().await;
+}
+

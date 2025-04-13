@@ -25,7 +25,7 @@ pub async fn world_forge_cli() {
         "deploy" => interact.deploy().await,
         "upgrade" => interact.upgrade().await,
         "createNft" => interact.create_nft().await,
-        "issueToken" => interact.issue_token().await,
+        //"issueToken" => interact.issue_token().await,
         "setLocalRoles" => interact.set_local_roles().await,
         "buyNft" => interact.buy_nft().await,
         "buyPack" => interact.buy_pack().await,
@@ -122,7 +122,7 @@ impl ContractInteract {
             .interactor
             .tx()
             .from(&self.wallet_address)
-            .gas(300_000_000u64)
+            .gas(100_000_000u64)
             .typed(proxy::NftMinterProxy)
             .init()
             .code(&self.contract_code)
@@ -142,7 +142,7 @@ impl ContractInteract {
             .tx()
             .to(self.state.current_address())
             .from(&self.wallet_address)
-            .gas(30_000_000u64)
+            .gas(100_000_000u64)
             .typed(proxy::NftMinterProxy)
             .upgrade()
             .code(&self.contract_code)
@@ -164,7 +164,7 @@ impl ContractInteract {
             .tx()
             .from(&self.wallet_address)
             .to(self.state.current_address())
-            .gas(30_000_000u64)
+            .gas(100_000_000u64)
             .typed(proxy::NftMinterProxy)
             .create_nft(selling_price, opt_token_used_as_payment, opt_token_used_as_payment_nonce)
             .returns(ReturnsResultUnmanaged)
@@ -174,18 +174,15 @@ impl ContractInteract {
         println!("Result: {response:?}");
     }
 
-    pub async fn issue_token(&mut self) {
-        let egld_amount = BigUint::<StaticApi>::from(0u128);
-
-        let token_name = ManagedBuffer::new_from_bytes(&b""[..]);
-        let token_ticker = ManagedBuffer::new_from_bytes(&b""[..]);
+    pub async fn issue_token(&mut self, token_name: &str, token_ticker: &str) {
+        let egld_amount = BigUint::<StaticApi>::from(50_000_000_000_000_000u128);
 
         let response = self
             .interactor
             .tx()
             .from(&self.wallet_address)
             .to(self.state.current_address())
-            .gas(30_000_000u64)
+            .gas(100_000_000u64)
             .typed(proxy::NftMinterProxy)
             .issue_token(token_name, token_ticker)
             .egld(egld_amount)
@@ -202,7 +199,7 @@ impl ContractInteract {
             .tx()
             .from(&self.wallet_address)
             .to(self.state.current_address())
-            .gas(30_000_000u64)
+            .gas(100_000_000u64)
             .typed(proxy::NftMinterProxy)
             .set_local_roles()
             .returns(ReturnsResultUnmanaged)
@@ -420,6 +417,21 @@ impl ContractInteract {
             .await;
 
         println!("Result: {result_value:?}");
+    }
+
+    pub async fn nft_token_id(&mut self) -> String {
+        let result_value = self
+            .interactor
+            .query()
+            .to(self.state.current_address())
+            .typed(proxy::NftMinterProxy)
+            .nft_token_id()
+            .returns(ReturnsResultUnmanaged)
+            .run()
+            .await;
+
+        println!("Result: {result_value:?}");
+        return result_value.to_string();
     }
 
 }
