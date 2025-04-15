@@ -9,6 +9,7 @@ mod nft_module;
 mod storage;
 mod attributes_builder;
 mod rarety_module;
+pub mod proxy;
 
 
 #[multiversx_sc::contract]

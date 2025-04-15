@@ -1,4 +1,4 @@
 
 [[proxy]]
-path = "interactor/src/proxy.rs"
+path = "src/proxy.rs"
  

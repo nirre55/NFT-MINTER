@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 pub mod config;
-mod proxy;
+use world_forge::proxy;
 
 use config::Config;
 use multiversx_sc_snippets::imports::*;

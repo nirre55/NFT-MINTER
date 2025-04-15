@@ -1,5 +1,5 @@
 use multiversx_sc_scenario::imports::*;
-use interactor::proxy;
+use world_forge::proxy::NftMinterProxy;
 
 const OWNER_ADDRESS: TestAddress = TestAddress::new("owner");
 const ALICE_ADDRESS: TestSCAddress = TestSCAddress::new("adder");
@@ -23,7 +23,7 @@ fn adder_blackbox() {
         .tx()
         .from(OWNER_ADDRESS)
         .typed( NftMinterProxy) 
-        .init(5u32)
+        .init()
         .code(CODE_PATH)
         .new_address(ALICE_ADDRESS)
         .returns(ReturnsNewAddress)
